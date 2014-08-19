@@ -17,7 +17,6 @@ public class FXRunnerFacebook : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-
 	}
 
 	void Awake(){
@@ -25,7 +24,6 @@ public class FXRunnerFacebook : MonoBehaviour {
 		enabled = false;                  
 		FB.Init(OnInitComplete, OnHideUnity);  
 	}
-
 #endregion
 
 
@@ -100,7 +98,6 @@ public class FXRunnerFacebook : MonoBehaviour {
 		}else{
 			FB.Login("email,publish_actions", LoginCallback);   
 		}
-
 	}       
 	
 	private void OnHideUnity(bool isGameShown)                                                   
@@ -117,6 +114,4 @@ public class FXRunnerFacebook : MonoBehaviour {
 			Time.timeScale = 1;                                                                  
 		}                                                                                        
 	}    
-	
-	
 }

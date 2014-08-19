@@ -4,25 +4,23 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+
 public class FXRunnerManager
 {
 	/***********************************************************
 	**	PROPERTIES
 	***********************************************************/
 
-	//Time
+	//////////////////////////Time
 	private float _startGameTime;
 	public float gameTime{
 		get{
 			return (Time.time - _startGameTime);
+
 		}
 	}
-
-	private void resetTime(){
-		_startGameTime = Time.time;
-	}
-
-	//SPEED
+	
+	//////////////////////////SPEED
 
 	/// The max speed in current game.
 	public float maxSpeed = 0;
@@ -41,7 +39,7 @@ public class FXRunnerManager
 		}
 	}
 
-	//PLAYER
+	//////////////////////////PLAYER
 
 	///the speed of the player going horizontally - available for keyboard only
 	public float horizontalPlayerSpeed = .7f;
@@ -59,7 +57,6 @@ public class FXRunnerManager
 			if( Mathf.Abs( _playerHorizontalPosition ) >= 1){
 				_playerHorizontalPosition /= Mathf.Abs( _playerHorizontalPosition );
 			}
-
 		}
 	}
 
@@ -71,7 +68,7 @@ public class FXRunnerManager
 	
 
 
-	//SCORE
+	//////////////////////////SCORE
 
 	/// The game score.
 	private float _gameScore;
@@ -91,7 +88,7 @@ public class FXRunnerManager
 	
 
 	
-	// POSITION
+	////////////////////////// POSITION
 
 	//this values will move the camera and the road according to the RoadFunction Class
 	private float _x; //posOfCamera
@@ -184,12 +181,17 @@ public class FXRunnerManager
 	}
 	
 
-	//MANAGERS
+	//////////////////////////MANAGERS
 
 	public IRoadFunction Fx;
 	private FXRoad fxRoad;
 
 	private Transform _parent;
+
+
+
+
+
 
 	/***********************************************************
 	**	Ctor's
@@ -225,7 +227,7 @@ public class FXRunnerManager
 
 	}
 
-	//
+
 	public void MakeStep ( float deltaTime ){
 		x += speed * deltaTime;
 	}
@@ -261,6 +263,12 @@ public class FXRunnerManager
 		
 	}
 
+	/// <summary>
+	/// Resets the time.
+	/// </summary>
+	private void resetTime(){
+		_startGameTime = Time.time;
+	}
 
 
 }

@@ -13,19 +13,21 @@ public class mqttTest : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		// create client instance 
-		client = new MqttClient(IPAddress.Parse("198.41.30.241"),1883 , false , null );  //198.41.30.241:1883 Public MQTT broker
+		client = new MqttClient("broker.mqttdashboard.com",1883 , false , null ); 
 		
 		// register to message received 
 		client.MqttMsgPublishReceived += client_MqttMsgPublishReceived; 
 		
 		string clientId = Guid.NewGuid().ToString(); 
 		client.Connect(clientId); 
-
+		
 		// subscribe to the topic "/home/temperature" with QoS 2 
 		client.Subscribe(new string[] { "hello/world" }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE }); 
+
 	}
 	void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e) 
 	{ 
+
 		Debug.Log("Received: " + System.Text.Encoding.UTF8.GetString(e.Message)  );
 	} 
 
@@ -38,6 +40,8 @@ public class mqttTest : MonoBehaviour {
 	}
 	// Update is called once per frame
 	void Update () {
+
+
 
 	}
 }
