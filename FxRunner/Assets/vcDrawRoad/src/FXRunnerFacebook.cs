@@ -8,6 +8,7 @@ using System;
 
 public class FXRunnerFacebook : MonoBehaviour {
 
+#region Unity
 	// Use this for initialization
 	void Start () {
 
@@ -22,9 +23,10 @@ public class FXRunnerFacebook : MonoBehaviour {
 	void Awake(){
 		// Initialize FB SDK              
 		enabled = false;                  
-		FB.Init(SetInit, OnHideUnity);  
+		FB.Init(OnInitComplete, OnHideUnity);  
 	}
 
+#endregion
 
 
 	/***************************************************
@@ -45,9 +47,9 @@ public class FXRunnerFacebook : MonoBehaviour {
 		FbDebug.Log("Logged in. ID: " + FB.UserId);     
 
 		// Reqest player info and profile picture                                                                           
-		FB.API("/me?fields=id,first_name,friends.limit(100).fields(first_name,id)", Facebook.HttpMethod.GET, APICallback);  
-		//FB.API(Util.GetPictureURL("me", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);    
-
+		FB.API("/me?fields=id,first_name,picture", Facebook.HttpMethod.GET, APICallback);  
+		FB.API(Util.GetPictureURL("me", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);
+		//FB.API(Util.GetPictureURL("777349191", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);   //ilya = 777349191
 	}  
 	Dictionary <string,string> profile;
 	void APICallback(FBResult result)                                                                                              
@@ -60,10 +62,10 @@ public class FXRunnerFacebook : MonoBehaviour {
 			FB.API("/me?fields=id,first_name,friends.limit(100).fields(first_name,id)", Facebook.HttpMethod.GET, APICallback);     
 			return;                                                                                                                
 		}                                                                                                                          
-
-
+		Debug.Log("result.Text = " + result.Text);
 		profile = Util.DeserializeJSONProfile(result.Text);                                                                        
-		FXRunnerGUI.Instance.TextGUIText.text  = profile["first_name"];                                                                         
+		FXRunnerGUI.Instance.TextGUIText.text  = profile["first_name"];    
+
 		//friends = Util.DeserializeJSONFriends(result.Text);                                                                        
 	}                                                                                                                              
 	
@@ -77,15 +79,17 @@ public class FXRunnerFacebook : MonoBehaviour {
 			// Let's just try again                                                                                                
 			FB.API(Util.GetPictureURL("me", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);                                
 			return;                                                                                                                
-		}                                                                                                                          
-		//GameStateManager.UserTexture = result.Texture;                                                                             
+		}  
+		GameObject fbPicture = GameObject.Find("FBPicture");
+		fbPicture.transform.renderer.enabled = true;
+		fbPicture.transform.renderer.material.mainTexture = result.Texture;                                                                          
 	}      
 	
 	/***************************************************
 	 * 				INIT
 	 **************************************************/
 	//After facebook init callback
-	private void SetInit()                                                                       
+	private void OnInitComplete()                                                                       
 	{                                                                                            
 		FbDebug.Log("SetInit");                                                                  
 		enabled = true; // "enabled" is a property inherited from MonoBehaviour                  

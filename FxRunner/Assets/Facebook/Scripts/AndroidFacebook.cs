@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -71,7 +70,7 @@ namespace Facebook
         protected override void OnAwake()
         {
             keyHash = "";
-#if DEBUG
+#if UNITY_ANDROID && DEBUG
             AndroidJNIHelper.debug = true;
 #endif
         }
@@ -141,6 +140,7 @@ namespace Facebook
 
         public void OnInitComplete(string message)
         {
+            this.isInitialized = true;
             OnLoginComplete(message);
             if (this.onInitComplete != null)
             {
@@ -177,6 +177,14 @@ namespace Facebook
             OnAuthResponse(new FBResult(message));
         }
 
+        public void OnGroupCreateComplete(string message)
+        {
+            var result = (Dictionary<string, object>)MiniJSON.Json.Deserialize(message);
+            var callbackId = (string)result[CallbackIdKey];
+            result.Remove(CallbackIdKey);
+            OnFacebookResponse(callbackId, new FBResult(MiniJSON.Json.Serialize(result)));
+        }
+
         //TODO: move into AbstractFacebook
         public void OnAccessTokenRefresh(string message)
         {
@@ -202,15 +210,33 @@ namespace Facebook
 
         public override void AppRequest(
             string message,
+            OGActionType actionType,
+            string objectId,
             string[] to = null,
-            string filters = "",
+            List<object> filters = null,
             string[] excludeIds = null,
             int? maxRecipients = null,
             string data = "",
             string title = "",
             FacebookDelegate callback = null)
         {
-            Dictionary<string, object> paramsDict = new Dictionary<string, object>();
+
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentNullException("message", "message cannot be null or empty!");
+            }
+
+            if (actionType != null && string.IsNullOrEmpty(objectId))
+            {
+                throw new ArgumentNullException("objectId", "You cannot provide an actionType without an objectId");
+            }
+
+            if (actionType == null && !string.IsNullOrEmpty(objectId))
+            {
+                throw new ArgumentNullException("actionType", "You cannot provide an objectId without an actionType");
+            }
+
+            var paramsDict = new Dictionary<string, object>();
             // Marshal all the above into the thing
 
             paramsDict["message"] = message;
@@ -220,14 +246,24 @@ namespace Facebook
                 paramsDict["callback_id"] = AddFacebookDelegate(callback);
             }
 
+            if (actionType != null && !string.IsNullOrEmpty(objectId))
+            {
+                paramsDict["action_type"] = actionType.ToString();
+                paramsDict["object_id"] = objectId;
+            }
+
             if (to != null)
             {
                 paramsDict["to"] = string.Join(",", to);
             }
 
-            if (!string.IsNullOrEmpty(filters))
+            if (filters != null && filters.Count > 0)
             {
-                paramsDict["filters"] = filters;
+                string mobileFilter = filters[0] as string;
+                if(mobileFilter != null)
+                {
+                    paramsDict["filters"] = mobileFilter;
+                }
             }
 
             if (maxRecipients != null)
@@ -423,6 +459,40 @@ namespace Facebook
             throw new PlatformNotSupportedException("There is no Facebook Pay Dialog on Android");
         }
 
+        public override void GameGroupCreate(
+            string name,
+            string description,
+            string privacy = "CLOSED",
+            FacebookDelegate callback = null)
+        {
+            var paramsDict = new Dictionary<string, object>();
+            paramsDict["name"] = name;
+            paramsDict["description"] = description;
+            paramsDict["privacy"] = privacy;
+
+            if (callback != null)
+            {
+                paramsDict["callback_id"] = AddFacebookDelegate(callback);
+            }
+
+            CallFB("GameGroupCreate", MiniJSON.Json.Serialize (paramsDict));
+        }
+
+        public override void GameGroupJoin(
+            string id,
+            FacebookDelegate callback = null)
+        {
+            var paramsDict = new Dictionary<string, object>();
+            paramsDict["id"] = id;
+
+            if (callback != null)
+            {
+                paramsDict["callback_id"] = AddFacebookDelegate(callback);
+            }
+
+            CallFB("GameGroupJoin", MiniJSON.Json.Serialize (paramsDict));
+        }
+
         public override void GetDeepLink(FacebookDelegate callback)
         {
             if (callback != null)
@@ -498,6 +568,16 @@ namespace Facebook
             {
                 OnFacebookResponse((string)response["callback_id"], new FBResult(""));
             }
+        }
+
+        public override void ActivateApp(string appId = null)
+        {
+            var parameters = new Dictionary<string, string>(1);
+            if (!string.IsNullOrEmpty(appId))
+            {
+                parameters["app_id"] = appId;
+            }
+            CallFB("ActivateApp", MiniJSON.Json.Serialize(parameters));
         }
 
         private Dictionary<string, string> ToStringDict(Dictionary<string, object> dict)

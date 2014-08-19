@@ -11,7 +11,6 @@ public class FXRunnerManager
 	***********************************************************/
 
 	//Time
-
 	private float _startGameTime;
 	public float gameTime{
 		get{
@@ -50,15 +49,15 @@ public class FXRunnerManager
 	///the left most is -1 
 	///the right most is 1
 	///allways normlized
-	private float _playerRelativePosition;
-	private float playerRelativePosition{
+	private float _playerHorizontalPosition;
+	private float playerHorizontalPosition{
 		get{
-			return _playerRelativePosition;
+			return _playerHorizontalPosition;
 		}set{
-			_playerRelativePosition = value;
+			_playerHorizontalPosition = value;
 			//Normlize player relative position position
-			if( Mathf.Abs( _playerRelativePosition ) >= 1){
-				_playerRelativePosition /= Mathf.Abs( _playerRelativePosition );
+			if( Mathf.Abs( _playerHorizontalPosition ) >= 1){
+				_playerHorizontalPosition /= Mathf.Abs( _playerHorizontalPosition );
 			}
 
 		}
@@ -100,8 +99,7 @@ public class FXRunnerManager
 		set{
 			_x = value;
 			posOfRoad = _x + _roadDistanceFromCamera;
-		}
-		get{
+		}get{
 			return _x;
 		}
 	}
@@ -134,6 +132,10 @@ public class FXRunnerManager
 		}
 	}
 
+	/// <summary>
+	/// Sets the camera position.
+	/// </summary>
+	/// <param name="camera">Camera.</param>
 	public void setCam( Camera camera ){
 		if(camera == null){
 			Debug.LogError("camera cant be null!!!");
@@ -142,45 +144,43 @@ public class FXRunnerManager
 			Debug.LogError("Fx cant be null!!!");
 		}
 		//Move camera to position
-		camera.transform.position = Fx.Pos( x );
-		camera.transform.LookAt(  Fx.Pos( x ) + Fx.Dir( x ) , Fx.Norm( x ) * 20 );
-		camera.transform.position =  Fx.Pos( x ) + Fx.Dir( x ) + Fx.Norm( x ) * 20;
+		camera.transform.position = Fx.Pos( x - _playerDistanceFromCamera);
+		camera.transform.LookAt(  Fx.Pos( x - _playerDistanceFromCamera) + Fx.Dir( x ) , Fx.Norm( x ) * 20 );
+		camera.transform.position =  Fx.Pos( x - _playerDistanceFromCamera ) + Fx.Dir( x ) + Fx.Norm( x ) * 20;
 		camera.transform.Rotate( 25 , 0 , 0 );
-
-
 	}
 
 	//for mouse input
 	//fet pos [-1 , 1] if not the function will normalize it.
-	public void setPlayer( GameObject player , float pos ){
-		playerRelativePosition = pos;
-		Vector3 positionOfPlayer = Fx.Pos( x + _playerDistanceFromCamera );
+	public void setPlayer( GameObject player , float horizontalPosition ){
+		playerHorizontalPosition = horizontalPosition;
 
-		player.transform.position = positionOfPlayer + Fx.Right( x + _playerDistanceFromCamera ) * ( fxRoad.roadWidth / 2 ) * playerRelativePosition;
+		Vector3 positionOfPlayer = Fx.Pos( x );
+
+		player.transform.position = positionOfPlayer + Fx.Right( x ) * ( fxRoad.roadWidth / 2 ) * playerHorizontalPosition;
 		
-		player.transform.LookAt( positionOfPlayer + Fx.Dir( x + _playerDistanceFromCamera ) + 
-		                        Fx.Right( x + _playerDistanceFromCamera ) *  
-		                        ( fxRoad.roadWidth / 2 ) * playerRelativePosition 
-		                        , Fx.Norm( x + _playerDistanceFromCamera + 0.1f) );
+		player.transform.LookAt( positionOfPlayer + Fx.Dir( x ) + 
+		                        Fx.Right( x ) *  
+		                        ( fxRoad.roadWidth / 2 ) * playerHorizontalPosition 
+		                        , Fx.Norm( x + 0.1f) );
 	}
 	//For keyboard input
-	public void setPlayer( GameObject player , float hs , float dt ){
+	public void setPlayer( GameObject player , float horizontalPosition , float deltaTime ){
 
 		//Move player position
 		if( speed >= 1f ){
-			playerRelativePosition +=  (1f + 5f *   (1 - (1 / ( Mathf.Abs( speed ) ) ) ) ) * horizontalPlayerSpeed * hs * dt;
+			playerHorizontalPosition +=  (1f + 5f *   (1 - (1 / ( Mathf.Abs( speed ) ) ) ) ) * horizontalPlayerSpeed * horizontalPosition * deltaTime;
 		}else{
-			playerRelativePosition +=  horizontalPlayerSpeed * hs * dt;
+			playerHorizontalPosition +=  horizontalPlayerSpeed * horizontalPosition * deltaTime;
 		}
 
+		Vector3 positionOfPlayer = Fx.Pos( x );
+		player.transform.position = positionOfPlayer + Fx.Right( x ) * ( fxRoad.roadWidth / 2 ) * playerHorizontalPosition;
 
-		Vector3 positionOfPlayer = Fx.Pos( x + _playerDistanceFromCamera );
-		player.transform.position = positionOfPlayer + Fx.Right( x + _playerDistanceFromCamera ) * ( fxRoad.roadWidth / 2 ) * playerRelativePosition;
-
-		player.transform.LookAt( positionOfPlayer + Fx.Dir( x + _playerDistanceFromCamera ) + 
-		                         Fx.Right( x + _playerDistanceFromCamera ) *  
-		                         ( fxRoad.roadWidth / 2 ) * playerRelativePosition 
-		                         , Fx.Norm( x + _playerDistanceFromCamera + 0.1f) );
+		player.transform.LookAt( positionOfPlayer + Fx.Dir( x ) + 
+		                         Fx.Right( x ) *  
+		                         ( fxRoad.roadWidth / 2 ) * playerHorizontalPosition 
+		                         , Fx.Norm( x + 0.1f) );
 	}
 	
 
@@ -194,6 +194,16 @@ public class FXRunnerManager
 	/***********************************************************
 	**	Ctor's
 	***********************************************************/
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FXRunnerManager"/> class.
+	/// </summary>
+	/// <param name="parent">Parent.</param>
+	/// <param name="fx">Fx.</param>
+	/// <param name="lineMaterial">Line material.</param>
+	/// <param name="obsticlePrefabList">Obsticle prefab list.</param>
+	/// <param name="roadDistanceFromCamera">Road distance from camera.</param>
+	/// <param name="startSpeed">Start speed.</param>
+	/// <param name="playerDistanceFromCamera">Player distance from camera.</param>
 	public FXRunnerManager ( Transform parent , 
 	                        IRoadFunction fx , 
 	                        Material lineMaterial , 
@@ -211,8 +221,6 @@ public class FXRunnerManager
 		fxRoad = new FXRoad( fx , 60 , .3f , lineMaterial ,obsticlePrefabList , 20 , 8 , parent , .5f );
 	}
 
-
-
 	public void Restart(){
 
 	}
@@ -220,7 +228,6 @@ public class FXRunnerManager
 	//
 	public void MakeStep ( float deltaTime ){
 		x += speed * deltaTime;
-
 	}
 
 	/*******************************************************

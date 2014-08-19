@@ -64,7 +64,9 @@ public class FBScreen {
 
     public static void SetUnityPlayerEmbedCSS(string key, string value)
     {
+#if UNITY_WEBPLAYER
         Application.ExternalEval(string.Format("$(\"#unityPlayerEmbed\").css(\"{0}\",\"{1}\")", key, value));
+#endif
     }
 
     #region Layout Params
@@ -99,6 +101,7 @@ public class FBScreen {
 
     private static void SetLayout(IEnumerable<Layout> parameters)
     {
+#if UNITY_WEBPLAYER
         foreach (Layout parameter in parameters)
         {
             var layoutLeft = parameter as Layout.OptionLeft;
@@ -163,6 +166,7 @@ public class FBScreen {
 
             FbDebug.Error("Unknown Layout type: " + parameter.GetType());
         }
+#endif
     }
 
     public class Layout

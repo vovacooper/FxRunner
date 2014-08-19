@@ -68,6 +68,8 @@ namespace Facebook
                 yield return null;
             }
             fb.Init(onInitComplete, appId, cookie, logging, status, xfbml, channelUrl, authResponse, frictionlessRequests, hideUnityDelegate);
+
+            this.isInitialized = true;
             if (onInitComplete != null)
             {
                 onInitComplete();
@@ -97,15 +99,17 @@ namespace Facebook
 
         public override void AppRequest(
             string message,
+            OGActionType actionType,
+            string objectId,
             string[] to = null,
-            string filters = "",
+            List<object> filters = null,
             string[] excludeIds = null,
             int? maxRecipients = null,
             string data = "",
             string title = "",
             FacebookDelegate callback = null)
         {
-            fb.AppRequest(message, to, filters, excludeIds, maxRecipients, data, title, callback);
+            fb.AppRequest(message, actionType, objectId, to, filters, excludeIds, maxRecipients, data, title, callback);
         }
 
         public override void FeedRequest(
@@ -139,12 +143,32 @@ namespace Facebook
             FbDebug.Info("Pay method only works with Facebook Canvas.  Does nothing in the Unity Editor, iOS or Android");
         }
 
+        public override void GameGroupCreate(
+            string name,
+            string description,
+            string privacy = "CLOSED",
+            FacebookDelegate callback = null)
+        {
+            throw new PlatformNotSupportedException("There is no Facebook GameGroupCreate Dialog on Editor");
+        }
+
+        public override void GameGroupJoin(
+            string id,
+            FacebookDelegate callback = null)
+        {
+            throw new PlatformNotSupportedException("There is no Facebook GameGroupJoin Dialog on Editor");
+        }
+
         public override void GetAuthResponse(FacebookDelegate callback = null)
         {
             fb.GetAuthResponse(callback);
         }
-        
+
         public override void PublishInstall(string appId, FacebookDelegate callback = null) {}
+        public override void ActivateApp(string appId = null)
+        {
+            FbDebug.Info("This only needs to be called for iOS or Android.");
+        }
 
         public override void GetDeepLink(FacebookDelegate callback)
         {
