@@ -48,7 +48,7 @@ public class FXRunnerManager
 	///the right most is 1
 	///allways normlized
 	private float _playerHorizontalPosition;
-	private float playerHorizontalPosition{
+	public float playerHorizontalPosition{
 		get{
 			return _playerHorizontalPosition;
 		}set{
