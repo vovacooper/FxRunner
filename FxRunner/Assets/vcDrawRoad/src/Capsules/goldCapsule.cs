@@ -18,6 +18,7 @@ public class goldCapsule : MonoBehaviour {
 		Debug.Log("From Capsule " + other.name);
 		//FXRunner.fxRunnerManager.gameScore += 100;
 		FXRunner.fxRunnerManager.gameScore += FXRunner.fxRunnerManager.speed ;
+		Destroy(this.gameObject);
 	}
 
 }

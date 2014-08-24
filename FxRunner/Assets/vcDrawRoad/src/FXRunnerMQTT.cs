@@ -21,8 +21,6 @@ using Facebook.MiniJSON;
 
 public class FXRunnerMQTT : MonoBehaviour {
 #region PUBLIC
-	public static List<GameObject> playersList;
-
 	/// <summary>
 	/// The distance for each section.
 	/// </summary>
@@ -36,7 +34,12 @@ public class FXRunnerMQTT : MonoBehaviour {
 	/// will be subscribed to this number of section before and after the corrent section
 	/// </summary>
 	public int numberOfSectionToBeSubscribedTo = 2;
-
+	/// <summary>
+	/// The players.
+	/// key - Facebook ID
+	/// value - all the data (playerData) syncronyzed by MQTT or other servers. 
+	/// </summary>
+	public Dictionary<string , playerData> PlayersDataMQTT;
 #endregion
 
 #region PRIVATE
@@ -59,49 +62,61 @@ public class FXRunnerMQTT : MonoBehaviour {
 	}
 	public void Publish( string topic , byte[] message ){
 		//Debug.Log("Publish " + topic);
-		mqttClient.Publish( "FxRunner/" + topic , message , MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+		mqttClient.Publish( "FxRunner/" + topic , message , MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, false);
 		//client.Publish("FxRunner/world", System.Text.Encoding.UTF8.GetBytes("Sending from Unity3D!!!"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, true);
 	}
 #endregion
 
 #region Unity
 	void Start () {
+		PlayersDataMQTT = new Dictionary<string, playerData>();
 		// create client instance 
-		mqttClient = new MqttClient( "test.mosquitto.org", 1883, false, null );  //198.41.30.241:1883 Public MQTT broker , IPAddress.Parse("192.168.56.101 ")
-
+		mqttClient = new MqttClient( "www.iziking.com", 1883, false, null );  //198.41.30.241:1883 Public MQTT broker , IPAddress.Parse("192.168.56.101 ")//TODO SSL
 		// register to message received 
 		mqttClient.MqttMsgPublishReceived += client_MqttMsgPublishReceived; 
 		mqttClient.MqttMsgPublished += client_MqttMsgPublished;
 		mqttClient.MqttMsgSubscribed += client_MqttMsgSubscribed;
 		mqttClient.MqttMsgUnsubscribed += client_MqttMsgUnsubscribed;
 		mqttClient.MqttMsgDisconnected += client_MqttMsgDisconnected;
+	}
 
-		string clientId = Guid.NewGuid().ToString(); 
-		mqttClient.Connect(clientId);
-
+	/// <summary>
+	/// The mqtt inited.
+	/// </summary>
+	private bool mqttInited = false;
+	/// <summary>
+	/// Raises the init event after FB has been initialized
+	/// </summary>
+	private void OnInit(){
+		//string clientId = Guid.NewGuid().ToString(); 
+		mqttClient.Connect(FB.UserId); //TODO UserName Pass
+		
 		//PerSubscribe to the first 3 sections
 		Subscribe( "0" );
 		Subscribe( "1" );
 		Subscribe( "2" );
+		
+		mqttInited = true;
 	}
-	
-	void OnGUI(){
-		if ( GUI.Button (new Rect (20,40,80,20), "Level 1")) {
-			Debug.Log("sending...");
-			Publish("0" , System.Text.Encoding.UTF8.GetBytes("Sending from Unity3D!!! hahahahahahahaha vovacooper:):):)") );
-			//client.Publish("FxRunner/world", System.Text.Encoding.UTF8.GetBytes("Sending from Unity3D!!!"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, true);
-			Debug.Log("sent");
-		}
-	}
+
 
 	// Update is called once per frame
 	void Update () {
+		if(!mqttInited){ //check if need to be initialized
+			if( FB.IsLoggedIn ){ //check for FB connectivity
+				OnInit();
+				mqttInited = true;
+			}else{ //do nothing without FB connected
+				return;
+			}
+		}
+
 		int currentSection = (int)((((int)FXRunner.fxRunnerManager.x) - (((int)FXRunner.fxRunnerManager.x) % distanceForSubscription)) / distanceForSubscription);
 
 		/////////////////////////////////
 		//Publishing to the right section
 		/////////////////////////////////
-		//Publish( currentSection.ToString() , dataToSend() );
+		Publish( currentSection.ToString() , dataToSend() );
 
 		/////////////////////////////////
 		//manage subscriptions 
@@ -123,7 +138,6 @@ public class FXRunnerMQTT : MonoBehaviour {
 		//Update old position
 		oldPosition = FXRunner.fxRunnerManager.x;
 		oldSection = currentSection;
-
 	}
 
 	///////////////////////////////////////////Section Events
@@ -138,7 +152,7 @@ public class FXRunnerMQTT : MonoBehaviour {
 
 	//////////////////////////////////////////DATA
 	byte[] dataToSend(){
-		playerData pd = new playerData(FB.UserId , FXRunner.fxRunnerManager.x , FXRunner.fxRunnerManager.playerHorizontalPosition );
+		playerData pd = new playerData(FB.UserId , FXRunner.fxRunnerManager.x , FXRunner.fxRunnerManager.y );
 		return  pd.playerDataSerialize();
 	}
 
@@ -151,19 +165,19 @@ public class FXRunnerMQTT : MonoBehaviour {
 #region MQTT callbacks
 	void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e) 
 	{ 
-		Debug.Log("--------------");
-		Debug.Log(sender.ToString());
-		Debug.Log(e.ToString());
-		Debug.Log(System.BitConverter.ToString(e.Message));
-		Debug.Log(Encoding.UTF8.GetString(e.Message));
-		ASCIIEncoding ascii = new ASCIIEncoding();
-		String decoded = ascii.GetString(e.Message);
-		Debug.Log("ascii = " + decoded);
-		//playerData pd = byteToData(e.Message);
-		//Debug.Log("Received2");
+		//Debug.Log("--------------");
+		//Debug.Log(sender.ToString());
+		//Debug.Log(e.ToString());
+		//Debug.Log(System.BitConverter.ToString(e.Message));
+		//Debug.Log(Encoding.UTF8.GetString(e.Message));
+		//ASCIIEncoding ascii = new ASCIIEncoding();
+		//String decoded = ascii.GetString(e.Message);
+		//Debug.Log("ascii = " + decoded);
+		playerData pd = byteToData(e.Message);
 		//Debug.Log( pd.ToString() );
-		//Debug.Log( pd.x );
-		//Debug.Log("Received: " + System.BitConverter.ToSingle(e.Message, 0));// System.Text.Encoding.UTF8.GetString(e.Message)  );
+		if(pd.FBID != ""){
+			PlayersDataMQTT[pd.FBID] = pd;
+        }
 	} 
 	void client_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e) 
 	{ 
@@ -190,7 +204,7 @@ public class FXRunnerMQTT : MonoBehaviour {
 		public string FBID;
 			
 		private int _byteLength;
-		public playerData( string fBID, float xPos , float y ){
+		public playerData( string fBID, float xPos , float yPos ){
 			if(fBID == null){
 				FBID = "";
 			}else{
@@ -198,7 +212,7 @@ public class FXRunnerMQTT : MonoBehaviour {
 			}
 
 			x = xPos;
-			y = y;
+			y = yPos;
 
 			_byteLength = sizeof( int ) + System.Text.Encoding.UTF8.GetBytes(FBID).Length + sizeof( float ) + sizeof( float );
 		}
@@ -212,7 +226,8 @@ public class FXRunnerMQTT : MonoBehaviour {
 			deserializedperson.x = System.BitConverter.ToSingle(serializedData , 4);
 			deserializedperson.y = System.BitConverter.ToSingle(serializedData , 8);
 			if(serializedData.Length > 12 ){
-				deserializedperson.FBID = System.BitConverter.ToString(serializedData , 12);
+				deserializedperson.FBID = System.Text.Encoding.UTF8.GetString(serializedData ,12 , 10);// System.BitConverter.ToString(serializedData , 12);
+
 			}else{
 				deserializedperson.FBID = "";
 			}

@@ -17,5 +17,7 @@ public class speedCapsule : MonoBehaviour {
 
 		Debug.Log("From Capsule " + other.name);
 		FXRunner.fxRunnerManager.speed += 1;
+
+		Destroy(this.gameObject);
 	}
 }

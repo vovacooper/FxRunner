@@ -17,5 +17,7 @@ public class timeCapsule : MonoBehaviour {
 		
 		Debug.Log("From Capsule " + other.name);
 		//FXRunner.fxRunnerManager.gameTime -= 10.0;
+
+		Destroy(this.gameObject);
 	}
 }

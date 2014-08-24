@@ -33,11 +33,13 @@ public class FXRunnerFacebook : MonoBehaviour {
 	void LoginCallback(FBResult result)                                                        
 	{                                                                                          
 		FbDebug.Log("LoginCallback");                                                          
-		
-		if (FB.IsLoggedIn)                                                                     
-		{                                                                                      
-			OnLoggedIn();                                                                      
-		}                                                                                      
+  
+		if(FB.IsLoggedIn) {
+			Debug.Log(FB.UserId);
+			OnLoggedIn();
+		} else {
+			Debug.Log("User cancelled login");
+		}
 	}                                                                                          
 	
 	void OnLoggedIn()                                                                          
@@ -46,10 +48,10 @@ public class FXRunnerFacebook : MonoBehaviour {
 
 		// Reqest player info and profile picture                                                                           
 		FB.API("/me?fields=id,first_name,picture", Facebook.HttpMethod.GET, APICallback);  
-		FB.API(Util.GetPictureURL("me", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);
+		//FB.API(Util.GetPictureURL("me", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);
 		//FB.API(Util.GetPictureURL("777349191", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);   //ilya = 777349191
 	}  
-	Dictionary <string,string> profile;
+	public Dictionary <string,string> profile;
 	void APICallback(FBResult result)                                                                                              
 	{                                                                                                                              
 		FbDebug.Log("APICallback");                                                                                                
@@ -62,8 +64,7 @@ public class FXRunnerFacebook : MonoBehaviour {
 		}                                                                                                                          
 		Debug.Log("result.Text = " + result.Text);
 		profile = Util.DeserializeJSONProfile(result.Text);                                                                        
-		FXRunnerGUI.Instance.TextGUIText.text  = profile["first_name"];    
-
+		//FXRunnerGUI.Instance.TextGUIText.text  = profile["first_name"];    
 		//friends = Util.DeserializeJSONFriends(result.Text);                                                                        
 	}                                                                                                                              
 	
@@ -78,9 +79,11 @@ public class FXRunnerFacebook : MonoBehaviour {
 			FB.API(Util.GetPictureURL("me", 128, 128), Facebook.HttpMethod.GET, MyPictureCallback);                                
 			return;                                                                                                                
 		}  
-		GameObject fbPicture = GameObject.Find("FBPicture");
-		fbPicture.transform.renderer.enabled = true;
-		fbPicture.transform.renderer.material.mainTexture = result.Texture;                                                                          
+
+
+		UnityEngine.UI.RawImage fbPicture = GameObject.Find("FBPicture").GetComponent<UnityEngine.UI.RawImage>();
+		fbPicture.enabled = true;
+		fbPicture.texture = result.Texture;                                                                          
 	}      
 	
 	/***************************************************
