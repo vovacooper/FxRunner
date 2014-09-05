@@ -47,8 +47,8 @@ public class FXRunnerPlayer : MonoBehaviour {
 
 			}
 		}
-		if(FBImage == null){
-			if( FB.IsLoggedIn ){
+		if(FBImage == null){ //Load image
+			if( FB.IsLoggedIn && FBImage == null ){ //TODO check that entare here onec avery sec...
 				FB.API(Util.GetPictureURL(FBID, 128, 128), Facebook.HttpMethod.GET, SetPictureCallback);
 			}
 		}
@@ -69,6 +69,7 @@ public class FXRunnerPlayer : MonoBehaviour {
 				Debug.LogError("FBID == null");
 			}
 			FXRunner.fxRunnerManager.setTransform( this.transform , MQTTManager.PlayersDataMQTT[FBID].x ,MQTTManager.PlayersDataMQTT[FBID].y  );
+			//Debug.Log(MQTTManager.PlayersDataMQTT[FBID].ToString());
 		}
 	}
 

@@ -117,6 +117,7 @@ public class FXRunnerMQTT : MonoBehaviour {
 		//Publishing to the right section
 		/////////////////////////////////
 		Publish( currentSection.ToString() , dataToSend() );
+		//Debug.Log( "top: FxRunner/" + currentSection.ToString() + " x = " + FXRunner.fxRunnerManager.x  + " time = " + System.DateTime.Now.Millisecond.ToString() );
 
 		/////////////////////////////////
 		//manage subscriptions 
@@ -160,7 +161,8 @@ public class FXRunnerMQTT : MonoBehaviour {
 		return playerData.playerDataDeserialize( serializedPlayerData );
 	}
 #endregion
-	
+
+
 
 #region MQTT callbacks
 	void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e) 
@@ -174,7 +176,7 @@ public class FXRunnerMQTT : MonoBehaviour {
 		//String decoded = ascii.GetString(e.Message);
 		//Debug.Log("ascii = " + decoded);
 		playerData pd = byteToData(e.Message);
-		//Debug.Log( pd.ToString() );
+		//Debug.Log( "top: " + e.Topic + " " + pd.ToString()  + " time = " + System.DateTime.Now.Millisecond.ToString() );
 		if(pd.FBID != ""){
 			PlayersDataMQTT[pd.FBID] = pd;
         }

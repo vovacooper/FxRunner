@@ -1568,7 +1568,7 @@ namespace uPLibrary.Networking.M2Mqtt
                     // wait on message queueud to inflight
                     this.inflightWaitHandle.WaitOne(timeout);
 #endif
-
+					//UnityEngine.Debug.Log("Time: " + System.DateTime.Now.Millisecond); //TODO remove
                     // it could be unblocked because Close() method is joining
                     if (this.isRunning)
                     {
